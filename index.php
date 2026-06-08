@@ -26,7 +26,7 @@ try {
 
 // ── Page routing ─────────────────────────────────────────────
 $page = $_GET['page'] ?? 'dashboard';
-$validPages = ['dashboard', 'mobil_konvensional', 'mobil_hybrid', 'mobil_listrik', 'motor_besar'];
+$validPages = ['dashboard', 'mobil_konvensional', 'mobil_hybrid', 'mobil_listrik', 'motor_besar', 'perhitungan_pajak'];
 if (!in_array($page, $validPages)) {
     $page = 'dashboard';
 }
@@ -57,6 +57,7 @@ $pageTitles = [
     'mobil_hybrid'       => 'Mobil Hybrid',
     'mobil_listrik'      => 'Mobil Listrik',
     'motor_besar'        => 'Motor Besar',
+    'perhitungan_pajak'  => 'Kalkulasi Pajak',
 ];
 $pageTitle = $pageTitles[$page] ?? 'Dashboard';
 ?>
@@ -74,29 +75,28 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         /* ══════════════════════════════════════════════════════════
            BASE & VARIABLES
            ══════════════════════════════════════════════════════════ */
         :root {
-            --sidebar-bg:       #1e293b;
-            --sidebar-hover:    #334155;
-            --sidebar-active:   #0ea5e9;
-            --sidebar-active-bg: rgba(14,165,233,0.12);
+            --sidebar-bg:       #0f172a;
+            --sidebar-hover:    #1e293b;
+            --sidebar-active:   linear-gradient(135deg, #3b82f6, #6366f1);
             --sidebar-width:    270px;
             --sidebar-text:     #94a3b8;
-            --sidebar-text-bright: #e2e8f0;
-            --content-bg:       #f1f5f9;
+            --sidebar-text-bright: #f8fafc;
+            --content-bg:       #f8fafc;
             --card-bg:          #ffffff;
-            --text-dark:        #212529;
+            --text-dark:        #0f172a;
             --text-secondary:   #64748b;
-            --border-light:     #e2e8f0;
-            --accent-blue:      #0ea5e9;
-            --accent-green:     #22c55e;
+            --border-light:     #f1f5f9;
+            --accent-blue:      #3b82f6;
+            --accent-green:     #10b981;
             --accent-orange:    #f97316;
-            --accent-purple:    #a855f7;
+            --accent-purple:    #8b5cf6;
             --accent-pink:      #ec4899;
             --konvensional:     #f97316;
             --hybrid:           #eab308;
@@ -107,11 +107,18 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+            font-weight: 500;
             background: var(--content-bg);
             color: var(--text-dark);
             min-height: 100vh;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4, h5, h6, .stat-value, .fw-bold, .value {
+            font-weight: 700 !important;
+            color: var(--text-dark);
         }
 
         /* ══════════════════════════════════════════════════════════
@@ -138,18 +145,17 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             flex-direction: column;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--sidebar-hover) transparent;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar { width: 5px; }
         .sidebar::-webkit-scrollbar-track { background: transparent; }
-        .sidebar::-webkit-scrollbar-thumb { background: var(--sidebar-hover); border-radius: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
 
         /* ── Sidebar Brand ── */
         .sidebar-brand {
-            padding: 1.5rem 1.5rem 1.25rem;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 1.75rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
             align-items: center;
             gap: 0.75rem;
@@ -160,7 +166,7 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
         .brand-logo {
             width: 42px;
             height: 42px;
-            background: linear-gradient(135deg, var(--accent-blue), #6366f1);
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -168,52 +174,56 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             font-size: 1.2rem;
             color: #fff;
             flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(14,165,233,0.3);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
         }
         .brand-text {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             font-weight: 800;
             color: #fff;
             letter-spacing: -0.03em;
         }
         .brand-text span {
-            color: var(--accent-blue);
+            color: #3b82f6;
         }
         .brand-sub {
             font-size: 0.65rem;
             color: var(--sidebar-text);
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            font-weight: 500;
+            font-weight: 600;
+            opacity: 0.8;
         }
 
         /* ── Sidebar Nav ── */
         .sidebar-nav {
-            padding: 1rem 0;
+            padding: 1.25rem 0;
             flex: 1;
         }
         .sidebar-label {
-            font-size: 0.65rem;
+            font-size: 0.68rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.08em;
             color: var(--sidebar-text);
             padding: 0.75rem 1.5rem 0.5rem;
-            opacity: 0.6;
+            opacity: 0.5;
         }
         .sidebar-menu {
             list-style: none;
             padding: 0;
             margin: 0;
         }
-        .sidebar-menu li { position: relative; }
+        .sidebar-menu li {
+            position: relative;
+            margin: 4px 14px;
+        }
 
         .sidebar-menu a,
         .sidebar-menu .menu-toggle {
             display: flex;
             align-items: center;
             gap: 0.8rem;
-            padding: 0.7rem 1.5rem;
+            padding: 0.75rem 1rem;
             color: var(--sidebar-text);
             text-decoration: none;
             font-size: 0.875rem;
@@ -224,6 +234,7 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             background: none;
             width: 100%;
             text-align: left;
+            border-radius: 12px;
         }
         .sidebar-menu a:hover,
         .sidebar-menu .menu-toggle:hover {
@@ -231,9 +242,10 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             background: var(--sidebar-hover);
         }
         .sidebar-menu a.active {
-            color: var(--accent-blue);
-            background: var(--sidebar-active-bg);
-            border-right: 3px solid var(--accent-blue);
+            color: #ffffff !important;
+            background: var(--sidebar-active) !important;
+            border: none !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
             font-weight: 600;
         }
         .sidebar-menu a .menu-icon,
@@ -259,24 +271,29 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
         }
         .menu-toggle[aria-expanded="true"] {
             color: var(--sidebar-text-bright);
-            background: rgba(255,255,255,0.03);
+            background: rgba(255, 255, 255, 0.04);
         }
         .sidebar-submenu {
             list-style: none;
-            padding: 0;
-            margin: 0;
-            background: rgba(0,0,0,0.12);
+            padding: 4px 0;
+            margin: 4px 0 0 0;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 10px;
+        }
+        .sidebar-submenu li {
+            margin: 2px 10px;
         }
         .sidebar-submenu a {
-            padding: 0.55rem 1.5rem 0.55rem 3.3rem;
+            padding: 0.55rem 1rem 0.55rem 2.2rem;
             font-size: 0.82rem;
-            font-weight: 400;
+            font-weight: 500;
+            border-radius: 8px;
             position: relative;
         }
         .sidebar-submenu a::before {
             content: '';
             position: absolute;
-            left: 2.3rem;
+            left: 1.2rem;
             top: 50%;
             width: 5px;
             height: 5px;
@@ -287,19 +304,21 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
         }
         .sidebar-submenu a.active::before,
         .sidebar-submenu a:hover::before {
-            background: var(--accent-blue);
+            background: #ffffff;
         }
         .sidebar-submenu a.active {
-            border-right: 3px solid var(--accent-blue);
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: #ffffff !important;
+            border: none !important;
         }
 
         /* ── Sidebar Footer ── */
         .sidebar-footer {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid rgba(255,255,255,0.06);
-            font-size: 0.72rem;
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.75rem;
             color: var(--sidebar-text);
-            opacity: 0.6;
+            opacity: 0.7;
         }
         .sidebar-footer i { margin-right: 0.3rem; }
 
@@ -319,14 +338,14 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
         .top-header {
             background: var(--card-bg);
             border-bottom: 1px solid var(--border-light);
-            padding: 0.85rem 2rem;
+            padding: 1.1rem 2rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: sticky;
             top: 0;
             z-index: 1000;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
         }
         .top-header .breadcrumb-area {
             display: flex;
@@ -334,18 +353,21 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             gap: 0.75rem;
         }
         .top-header .breadcrumb-area h1 {
-            font-size: 1.1rem;
-            font-weight: 700;
+            font-size: 1.25rem;
+            font-weight: 800;
             color: var(--text-dark);
             margin: 0;
+            letter-spacing: -0.02em;
         }
         .top-header .breadcrumb-path {
             font-size: 0.78rem;
             color: var(--text-secondary);
+            font-weight: 500;
         }
         .top-header .breadcrumb-path a {
             color: var(--accent-blue);
             text-decoration: none;
+            font-weight: 600;
         }
         .top-header .header-actions {
             display: flex;
@@ -353,18 +375,19 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             gap: 1rem;
         }
         .top-header .header-badge {
-            background: #f0f9ff;
-            color: var(--accent-blue);
-            font-size: 0.72rem;
+            background: #f1f5f9;
+            color: var(--text-dark);
+            font-size: 0.75rem;
             font-weight: 600;
-            padding: 4px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
-            border: 1px solid #bae6fd;
+            border: 1px solid #e2e8f0;
         }
-        .top-header .header-badge i { margin-right: 4px; }
+        .top-header .header-badge i { margin-right: 4px; color: var(--accent-blue); }
         .top-header .header-time {
             font-size: 0.78rem;
             color: var(--text-secondary);
+            font-weight: 500;
         }
 
         .btn-toggle-sidebar {
@@ -381,7 +404,7 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
         /* ── Content Body ── */
         .content-body {
             flex: 1;
-            padding: 1.75rem 2rem;
+            padding: 2rem;
             min-width: 0;
         }
 
@@ -391,7 +414,7 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
         .stat-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 1.25rem;
+            gap: 1.5rem;
             margin-bottom: 2rem;
         }
         .stat-card {
@@ -401,11 +424,12 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             position: relative;
             overflow: hidden;
             border: 1px solid var(--border-light);
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
         .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
         .stat-card::before {
             content: '';
@@ -413,25 +437,29 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             top: 0; left: 0; right: 0;
             height: 4px;
         }
-        .stat-card.blue::before    { background: linear-gradient(90deg, #0ea5e9, #6366f1); }
+        .stat-card.blue::before    { background: linear-gradient(90deg, #3b82f6, #6366f1); }
         .stat-card.orange::before  { background: linear-gradient(90deg, #f97316, #ef4444); }
-        .stat-card.green::before   { background: linear-gradient(90deg, #22c55e, #14b8a6); }
-        .stat-card.purple::before  { background: linear-gradient(90deg, #a855f7, #ec4899); }
+        .stat-card.green::before   { background: linear-gradient(90deg, #10b981, #14b8a6); }
+        .stat-card.purple::before  { background: linear-gradient(90deg, #8b5cf6, #ec4899); }
 
         .stat-card .stat-icon-wrap {
             width: 48px;
             height: 48px;
-            border-radius: 14px;
+            border-radius: 50% !important;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
+            transition: transform 0.3s ease;
         }
-        .stat-card.blue .stat-icon-wrap    { background: #f0f9ff; color: #0ea5e9; }
-        .stat-card.orange .stat-icon-wrap  { background: #fff7ed; color: #f97316; }
-        .stat-card.green .stat-icon-wrap   { background: #f0fdf4; color: #22c55e; }
-        .stat-card.purple .stat-icon-wrap  { background: #faf5ff; color: #a855f7; }
+        .stat-card:hover .stat-icon-wrap {
+            transform: scale(1.1);
+        }
+        .stat-card.blue .stat-icon-wrap    { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+        .stat-card.orange .stat-icon-wrap  { background: rgba(249, 115, 22, 0.15); color: #f97316; }
+        .stat-card.green .stat-icon-wrap   { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .stat-card.purple .stat-icon-wrap  { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
 
         .stat-card .stat-label {
             font-size: 0.75rem;
@@ -441,16 +469,17 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             letter-spacing: 0.06em;
         }
         .stat-card .stat-value {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 800;
             color: var(--text-dark);
-            margin-top: 0.25rem;
-            letter-spacing: -0.02em;
+            margin-top: 0.35rem;
+            letter-spacing: -0.03em;
         }
         .stat-card .stat-sub {
             font-size: 0.75rem;
             color: var(--text-secondary);
-            margin-top: 0.3rem;
+            margin-top: 0.4rem;
+            font-weight: 500;
         }
 
         /* ══════════════════════════════════════════════════════════
@@ -459,23 +488,24 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1.25rem;
+            gap: 1.5rem;
             margin-bottom: 2rem;
         }
         .dash-panel {
             background: var(--card-bg);
             border-radius: 16px;
             border: 1px solid var(--border-light);
-            padding: 1.5rem;
+            padding: 1.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
         .dash-panel .panel-title {
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--text-dark);
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.6rem;
         }
         .dash-panel .panel-title i {
             color: var(--accent-blue);
@@ -486,15 +516,15 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.65rem 0;
+            padding: 0.85rem 0;
             border-bottom: 1px solid #f1f5f9;
-            font-size: 0.85rem;
+            font-size: 0.875rem;
         }
         .breakdown-item:last-child { border-bottom: none; }
         .breakdown-dot {
             width: 10px; height: 10px;
             border-radius: 50%;
-            margin-right: 0.65rem;
+            margin-right: 0.75rem;
             flex-shrink: 0;
         }
         .dot-konvensional { background: var(--konvensional); }
@@ -507,38 +537,58 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             color: var(--text-dark);
         }
         .breakdown-pajak {
-            font-size: 0.72rem;
+            font-size: 0.78rem;
             color: var(--text-secondary);
+            font-weight: 600;
         }
 
         /* Rumus Cards */
         .rumus-card {
-            border-radius: 10px;
-            padding: 0.85rem 1rem;
-            margin-bottom: 0.65rem;
+            border-radius: 12px;
+            padding: 0.85rem 1.25rem;
+            margin-bottom: 0.75rem;
             border: 1px solid;
+            transition: transform 0.2s;
+        }
+        .rumus-card:hover {
+            transform: translateX(4px);
         }
         .rumus-card:last-child { margin-bottom: 0; }
         .rumus-card .rumus-label {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.06em;
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.35rem;
         }
         .rumus-card code {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: var(--text-dark);
             background: none;
+            font-weight: 600;
+            font-family: var(--bs-font-sans-serif);
         }
-        .rumus-konvensional { background: #fff7ed; border-color: #fed7aa; }
+        .rumus-konvensional { background: rgba(249, 115, 22, 0.05); border-color: rgba(249, 115, 22, 0.15); }
         .rumus-konvensional .rumus-label { color: var(--konvensional); }
-        .rumus-hybrid { background: #fefce8; border-color: #fde68a; }
+        .rumus-hybrid { background: rgba(234, 179, 8, 0.05); border-color: rgba(234, 179, 8, 0.15); }
         .rumus-hybrid .rumus-label { color: var(--hybrid); }
-        .rumus-listrik { background: #f0f9ff; border-color: #bae6fd; }
+        .rumus-listrik { background: rgba(14, 165, 233, 0.05); border-color: rgba(14, 165, 233, 0.15); }
         .rumus-listrik .rumus-label { color: var(--listrik); }
-        .rumus-motor { background: #faf5ff; border-color: #e9d5ff; }
+        .rumus-motor { background: rgba(168, 85, 247, 0.05); border-color: rgba(168, 85, 247, 0.15); }
         .rumus-motor .rumus-label { color: var(--motor); }
+
+        /* Rumus Table Badge */
+        .rumus-table-badge {
+            border-radius: 8px;
+            padding: 4px 10px;
+            border: 1px solid;
+            font-size: 0.75rem;
+            display: inline-block;
+        }
+        .rumus-table-badge code {
+            font-family: inherit;
+            font-weight: 600;
+        }
 
         /* ══════════════════════════════════════════════════════════
            DATA TABLES (Content Area)
@@ -546,102 +596,124 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
         .table-panel {
             background: var(--card-bg);
             border-radius: 16px;
-            border: 1px solid var(--border-light);
+            border: none !important;
             overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
         .table-panel .table-header {
-            padding: 1.25rem 1.5rem;
+            padding: 1.5rem 1.75rem;
             border-bottom: 1px solid var(--border-light);
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
         .table-panel .table-header h2 {
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 700;
             color: var(--text-dark);
             margin: 0;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.6rem;
         }
         .table-panel .table-header .record-count {
             font-size: 0.75rem;
             color: var(--text-secondary);
             background: #f1f5f9;
-            padding: 3px 12px;
+            padding: 4px 14px;
             border-radius: 20px;
             font-weight: 600;
         }
 
-        .table { margin-bottom: 0; font-size: 0.85rem; width: 100%; }
+        .table { margin-bottom: 0; font-size: 0.875rem; width: 100%; border-collapse: collapse; }
         .table-responsive {
             width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
+
+        /* Custom Scrollbar for responsiveness */
+        .table-responsive::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .table-responsive::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 10px;
+        }
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 10px;
+        }
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.6);
+        }
+
         .table thead th {
-            background: #f8fafc;
+            background: #f8fafc !important;
             color: var(--text-secondary);
             font-size: 0.72rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.06em;
-            border-bottom: 2px solid var(--border-light);
-            border-top: none;
-            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--border-light) !important;
+            border-top: none !important;
+            padding: 1rem 1.25rem;
             white-space: nowrap;
         }
         .table tbody td {
-            padding: 0.85rem 1rem;
+            padding: 1rem 1.25rem;
             vertical-align: middle;
             color: var(--text-dark);
-            border-color: #f1f5f9;
-            background: #ffffff;
+            border-bottom: 1px solid #f1f5f9;
+            background: transparent !important;
         }
         .table-sm thead th {
-            padding: 0.5rem 0.75rem;
+            padding: 0.75rem 1rem;
         }
         .table-sm tbody td {
-            padding: 0.5rem 0.75rem;
+            padding: 0.75rem 1rem;
         }
         .table tbody tr {
-            transition: background 0.15s;
+            transition: background-color 0.2s ease;
         }
-        .table tbody tr:hover td {
-            background: #f8fafc;
+        .table tbody tr:nth-child(odd) {
+            background-color: #f8fafc !important;
+        }
+        .table tbody tr:nth-child(even) {
+            background-color: #ffffff !important;
+        }
+        .table tbody tr:hover {
+            background-color: #f1f5f9 !important;
         }
 
         /* ── Badge Kategori ── */
         .badge-kategori {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            font-size: 0.7rem;
+            gap: 6px;
+            font-size: 0.72rem;
             font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 20px;
+            padding: 6px 12px;
+            border-radius: 30px !important;
             white-space: nowrap;
+            border: none !important;
         }
         .badge-konvensional {
-            background: #fff7ed;
-            color: #c2410c;
-            border: 1px solid #fed7aa;
+            background: rgba(249, 115, 22, 0.1) !important;
+            color: #ea580c !important;
         }
         .badge-hybrid {
-            background: #fefce8;
-            color: #a16207;
-            border: 1px solid #fde68a;
+            background: rgba(234, 179, 8, 0.1) !important;
+            color: #ca8a04 !important;
         }
         .badge-listrik {
-            background: #f0f9ff;
-            color: #0369a1;
-            border: 1px solid #bae6fd;
+            background: rgba(14, 165, 233, 0.1) !important;
+            color: #0284c7 !important;
         }
         .badge-motor {
-            background: #faf5ff;
-            color: #7e22ce;
-            border: 1px solid #e9d5ff;
+            background: rgba(168, 85, 247, 0.1) !important;
+            color: #9333ea !important;
         }
 
         /* ── Spesifikasi (Key-Value) ── */
@@ -651,14 +723,18 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             color: var(--text-dark);
             line-height: 1.7;
         }
+        .table tbody td strong {
+            color: #334155 !important;
+            font-weight: 600;
+        }
         .spec-row strong {
-            color: var(--text-dark);
+            color: #334155 !important;
             font-weight: 700;
             margin-right: 3px;
         }
         .spec-row span {
-            color: #495057;
-            font-weight: 400;
+            color: var(--text-secondary);
+            font-weight: 500;
         }
 
         /* ── Harga & Pajak ── */
@@ -666,32 +742,32 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             font-weight: 700;
             color: var(--text-dark) !important;
             white-space: nowrap;
-            font-size: 0.88rem;
+            font-size: 0.875rem;
         }
         .pajak-val-table {
             font-weight: 700;
-            color: #dc2626 !important;
+            color: #ef4444 !important;
             white-space: nowrap;
-            font-size: 0.88rem;
+            font-size: 0.875rem;
         }
 
         /* ── Stok badge ── */
         .stok-badge {
             display: inline-block;
-            padding: 3px 10px;
+            padding: 4px 10px;
             border-radius: 8px;
             font-weight: 600;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
         }
-        .stok-ok   { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+        .stok-ok   { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
         .stok-low  { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
 
         /* ── Transmisi badge ── */
         .trans-badge {
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            padding: 3px 10px;
-            border-radius: 6px;
+            padding: 4px 10px;
+            border-radius: 8px;
             background: #f1f5f9;
             color: #475569;
             border: 1px solid #e2e8f0;
@@ -701,34 +777,37 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
         .no-col {
             color: var(--text-secondary);
             font-size: 0.8rem;
-            font-weight: 500;
+            font-weight: 600;
         }
         .id-chip {
-            font-family: 'Courier New', monospace;
+            font-family: monospace;
             font-size: 0.75rem;
             background: #f1f5f9;
-            border: 1px solid var(--border-light);
+            border: 1px solid #e2e8f0;
             border-radius: 6px;
             padding: 2px 8px;
             color: var(--text-secondary);
+            font-weight: 600;
         }
 
         /* ── Table Footer ── */
         .table-footer {
             background: #f8fafc;
-            border-top: 2px solid var(--border-light);
-            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-light);
+            padding: 1.25rem 1.75rem;
         }
         .table-footer .footer-info {
-            font-size: 0.78rem;
+            font-size: 0.82rem;
             color: var(--text-secondary);
+            font-weight: 500;
         }
         .table-footer .footer-info code {
             font-size: 0.75rem;
             color: var(--accent-blue);
             background: #f0f9ff;
-            padding: 2px 6px;
-            border-radius: 4px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 600;
         }
         .table-footer .footer-total {
             text-align: left;
@@ -739,16 +818,16 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             }
         }
         .table-footer .footer-total .label {
-            font-size: 0.68rem;
+            font-size: 0.7rem;
             color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            font-weight: 600;
+            font-weight: 700;
         }
         .table-footer .footer-total .value {
             font-weight: 800;
-            color: #dc2626;
-            font-size: 1rem;
+            color: #ef4444;
+            font-size: 1.15rem;
         }
 
         /* ══════════════════════════════════════════════════════════
@@ -757,10 +836,11 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
         .content-footer {
             background: var(--card-bg);
             border-top: 1px solid var(--border-light);
-            padding: 1rem 2rem;
-            font-size: 0.78rem;
+            padding: 1.5rem 2rem;
+            font-size: 0.82rem;
             color: var(--text-secondary);
             text-align: center;
+            font-weight: 500;
         }
         .content-footer span {
             color: var(--accent-blue);
@@ -774,8 +854,9 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             background: #fef2f2;
             border: 1px solid #fecaca;
             color: #dc2626;
-            border-radius: 12px;
-            padding: 1.25rem 1.5rem;
+            border-radius: 16px;
+            padding: 1.25rem 1.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
         .alert-error strong { color: #b91c1c; }
 
@@ -790,8 +871,8 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             from { opacity: 0; transform: translateY(10px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-        .fade-in-delay { animation-delay: 0.1s; }
-        .fade-in-delay-2 { animation-delay: 0.2s; }
+        .fade-in-delay { animation-delay: 0.15s; }
+        .fade-in-delay-2 { animation-delay: 0.3s; }
 
         /* ══════════════════════════════════════════════════════════
            SIDEBAR OVERLAY (mobile)
@@ -800,7 +881,8 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
             z-index: 1040;
         }
         .sidebar-overlay.active { display: block; }
@@ -814,6 +896,7 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             }
             .sidebar.show {
                 transform: translateX(0);
+                box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
             }
             .main-content {
                 margin-left: 0;
@@ -825,10 +908,10 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
                 grid-template-columns: 1fr;
             }
             .content-body {
-                padding: 1.25rem 1rem;
+                padding: 1.5rem 1.25rem;
             }
             .top-header {
-                padding: 0.75rem 1rem;
+                padding: 1rem 1.25rem;
             }
         }
         @media (max-width: 575.98px) {
@@ -872,6 +955,12 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
                     <a href="index.php?page=dashboard" class="<?= $page === 'dashboard' ? 'active' : '' ?>" id="nav-dashboard">
                         <span class="menu-icon"><i class="fa-solid fa-gauge-high"></i></span>
                         <span class="menu-text">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="index.php?page=perhitungan_pajak" class="<?= $page === 'perhitungan_pajak' ? 'active' : '' ?>" id="nav-pajak">
+                        <span class="menu-icon"><i class="fa-solid fa-calculator"></i></span>
+                        <span class="menu-text">Kalkulasi Pajak</span>
                     </a>
                 </li>
             </ul>
@@ -1421,6 +1510,148 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
                 </div>
             </div>
 
+            <?php
+                    break;
+
+                // ──────────────────────────────────────────────────
+                //  PERHITUNGAN PAJAK (Kalkulasi Pajak)
+                // ──────────────────────────────────────────────────
+                case 'perhitungan_pajak':
+                    $totalPajakShowroom = 0.0;
+                    $totalHargaDasar = 0.0;
+                    $totalUnitPajak = count($koleksi);
+                    
+                    $pajakTertinggi = 0.0;
+                    $kendaraanPajakTertinggi = null;
+                    
+                    foreach ($koleksi as $kendaraan) {
+                        $pajakVal = $kendaraan->hitungPajakTahunan();
+                        $totalPajakShowroom += $pajakVal;
+                        $totalHargaDasar += $kendaraan->getHargaDasar();
+                        
+                        if ($pajakVal > $pajakTertinggi) {
+                            $pajakTertinggi = $pajakVal;
+                            $kendaraanPajakTertinggi = $kendaraan;
+                        }
+                    }
+                    
+                    $rataRataPajak = $totalUnitPajak > 0 ? ($totalPajakShowroom / $totalUnitPajak) : 0.0;
+            ?>
+            <!-- Stat Cards Section -->
+            <div class="stat-cards fade-in">
+                <!-- Total Kendaraan -->
+                <div class="stat-card blue">
+                    <div class="stat-icon-wrap"><i class="fa-solid fa-car-side"></i></div>
+                    <div class="stat-label">Total Unit Kendaraan</div>
+                    <div class="stat-value"><?= $totalUnitPajak ?> <small style="font-size:.55em;color:var(--text-secondary)">unit</small></div>
+                    <div class="stat-sub">Semua jenis kategori kendaraan</div>
+                </div>
+
+                <!-- Total Proyeksi Pajak -->
+                <div class="stat-card orange">
+                    <div class="stat-icon-wrap"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                    <div class="stat-label">Total Proyeksi Fiskal</div>
+                    <div class="stat-value" style="font-size:1.15rem"><?= rupiah($totalPajakShowroom) ?></div>
+                    <div class="stat-sub">Akumulasi seluruh beban pajak</div>
+                </div>
+
+                <!-- Rata-rata Pajak -->
+                <div class="stat-card green">
+                    <div class="stat-icon-wrap"><i class="fa-solid fa-calculator"></i></div>
+                    <div class="stat-label">Rata-Rata Pajak / Unit</div>
+                    <div class="stat-value" style="font-size:1.15rem"><?= rupiah($rataRataPajak) ?></div>
+                    <div class="stat-sub">Total Pajak dibagi jumlah unit</div>
+                </div>
+
+                <!-- Pajak Tertinggi -->
+                <div class="stat-card purple">
+                    <div class="stat-icon-wrap"><i class="fa-solid fa-arrow-up-wide-short"></i></div>
+                    <div class="stat-label">Beban Pajak Tertinggi</div>
+                    <div class="stat-value" style="font-size:1.1rem">
+                        <?= $kendaraanPajakTertinggi ? rupiah($pajakTertinggi) : 'Rp 0' ?>
+                    </div>
+                    <div class="stat-sub">
+                        <?= $kendaraanPajakTertinggi ? htmlspecialchars($kendaraanPajakTertinggi->getBrand() . ' ' . $kendaraanPajakTertinggi->getModel()) : 'Tidak ada data' ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Perhitungan Pajak Table -->
+            <div class="fade-in fade-in-delay">
+                <div class="table-panel">
+                    <div class="table-header">
+                        <h2><i class="fa-solid fa-calculator text-primary"></i> Detail Perhitungan Pajak Kendaraan</h2>
+                        <span class="record-count"><?= $totalUnitPajak ?> kendaraan terdaftar</span>
+                    </div>
+                    <div class="table-responsive" style="overflow-x: auto; width: 100%;">
+                        <table class="table table-sm table-borderless" id="tabel-perhitungan-pajak">
+                            <thead class="text-nowrap">
+                                <tr>
+                                    <th>No</th>
+                                    <th>Brand & Model</th>
+                                    <th>Kategori Kendaraan</th>
+                                    <th class="text-end">Harga Dasar</th>
+                                    <th>Rumus Fiskal Pajak</th>
+                                    <th class="text-end">Beban Pajak Tahunan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            <?php 
+                            $rumusPajakMap = [
+                                'Mobil Konvensional' => '(2% × Harga Dasar) + (Kapasitas Mesin × 500)',
+                                'Mobil Hybrid'       => '(1% × Harga Dasar) + (Kapasitas Mesin × 250)',
+                                'Mobil Listrik'      => '0.5% × Harga Dasar',
+                                'Motor Besar'        => '1.5% × Harga Dasar'
+                            ];
+                            
+                            $rumusClassMap = [
+                                'Mobil Konvensional' => 'rumus-konvensional',
+                                'Mobil Hybrid'       => 'rumus-hybrid',
+                                'Mobil Listrik'      => 'rumus-listrik',
+                                'Motor Besar'        => 'rumus-motor'
+                            ];
+
+                            foreach ($koleksi as $i => $kendaraan):
+                                $kategori = $showroom->getJenisKategori($kendaraan);
+                                $pajak    = $kendaraan->hitungPajakTahunan();
+                                $harga    = $kendaraan->getHargaDasar();
+                                $badge    = $badgeClass[$kategori] ?? 'badge-konvensional';
+                                $rumusTxt = $rumusPajakMap[$kategori] ?? '-';
+                                $rumusClass = $rumusClassMap[$kategori] ?? '';
+                            ?>
+                                <tr>
+                                    <td class="no-col"><?= $i + 1 ?></td>
+                                    <td>
+                                        <div class="fw-bold" style="color:#212529;font-size:.88rem"><?= htmlspecialchars($kendaraan->getBrand()) ?></div>
+                                        <div style="color:#64748b;font-size:.8rem;margin-top:2px"><?= htmlspecialchars($kendaraan->getModel()) ?></div>
+                                    </td>
+                                    <td><span class="badge-kategori <?= $badge ?>"><?= $categoryIcon[$kategori] ?? '' ?> <?= $kategori ?></span></td>
+                                    <td class="price-main-table text-end"><?= rupiah($harga) ?></td>
+                                    <td>
+                                        <div class="rumus-table-badge <?= $rumusClass ?>" style="margin: 0;">
+                                            <code><?= htmlspecialchars($rumusTxt) ?></code>
+                                        </div>
+                                    </td>
+                                    <td class="pajak-val-table text-end"><?= rupiah($pajak) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer">
+                        <div class="row w-100 align-items-center g-2">
+                            <div class="col-md-7 footer-info">
+                                <i class="fa-solid fa-info-circle me-1"></i>
+                                Perhitungan memicu fungsi OOP <code>hitungPajakTahunan()</code> secara dinamis (Polymorphism)
+                            </div>
+                            <div class="col-md-5 text-md-end footer-total">
+                                <div class="label">Total Akumulasi Pajak Showroom</div>
+                                <div class="value"><?= rupiah($totalPajakShowroom) ?></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <?php
                     break;
 
