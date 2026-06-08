@@ -26,7 +26,7 @@ try {
 
 // ── Page routing ─────────────────────────────────────────────
 $page = $_GET['page'] ?? 'dashboard';
-$validPages = ['dashboard', 'mobil_konvensional', 'mobil_hybrid', 'mobil_listrik', 'motor_besar', 'perhitungan_pajak'];
+$validPages = ['dashboard', 'mobil_konvensional', 'mobil_hybrid', 'mobil_listrik', 'motor_besar', 'pajak_aktif', 'pajak_expired'];
 if (!in_array($page, $validPages)) {
     $page = 'dashboard';
 }
@@ -57,7 +57,8 @@ $pageTitles = [
     'mobil_hybrid'       => 'Mobil Hybrid',
     'mobil_listrik'      => 'Mobil Listrik',
     'motor_besar'        => 'Motor Besar',
-    'perhitungan_pajak'  => 'Kalkulasi Pajak',
+    'pajak_aktif'        => 'Pajak Aktif',
+    'pajak_expired'      => 'Pajak Tidak Aktif',
 ];
 $pageTitle = $pageTitles[$page] ?? 'Dashboard';
 ?>
@@ -71,6 +72,8 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
 
     <!-- Bootstrap 5 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- FontAwesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Google Fonts -->
@@ -284,27 +287,10 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
             margin: 2px 10px;
         }
         .sidebar-submenu a {
-            padding: 0.55rem 1rem 0.55rem 2.2rem;
+            padding: 0.55rem 1rem 0.55rem 1.5rem;
             font-size: 0.82rem;
             font-weight: 500;
             border-radius: 8px;
-            position: relative;
-        }
-        .sidebar-submenu a::before {
-            content: '';
-            position: absolute;
-            left: 1.2rem;
-            top: 50%;
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: var(--sidebar-text);
-            transform: translateY(-50%);
-            transition: background 0.2s;
-        }
-        .sidebar-submenu a.active::before,
-        .sidebar-submenu a:hover::before {
-            background: #ffffff;
         }
         .sidebar-submenu a.active {
             background: rgba(255, 255, 255, 0.08) !important;
@@ -958,10 +944,31 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
                     </a>
                 </li>
                 <li>
-                    <a href="index.php?page=perhitungan_pajak" class="<?= $page === 'perhitungan_pajak' ? 'active' : '' ?>" id="nav-pajak">
+                    <button class="menu-toggle <?= in_array($page, ['pajak_aktif','pajak_expired']) ? '' : 'collapsed' ?>"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#menuPajak"
+                            aria-expanded="<?= in_array($page, ['pajak_aktif','pajak_expired']) ? 'true' : 'false' ?>">
                         <span class="menu-icon"><i class="fa-solid fa-calculator"></i></span>
                         <span class="menu-text">Kalkulasi Pajak</span>
-                    </a>
+                        <i class="fa-solid fa-chevron-right toggle-arrow"></i>
+                    </button>
+                    <div class="collapse <?= in_array($page, ['pajak_aktif','pajak_expired']) ? 'show' : '' ?>" id="menuPajak">
+                        <ul class="sidebar-submenu">
+                            <li>
+                                <a href="index.php?page=pajak_aktif" class="d-flex align-items-center gap-2 <?= $page === 'pajak_aktif' ? 'active' : '' ?>" id="nav-pajak-aktif">
+                                    <i class="bi bi-shield-fill-check fs-6"></i>
+                                    <span>Pajak Aktif</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="index.php?page=pajak_expired" class="d-flex align-items-center gap-2 <?= $page === 'pajak_expired' ? 'active' : '' ?>" id="nav-pajak-expired">
+                                    <i class="bi bi-shield-fill-x fs-6"></i>
+                                    <span>Pajak Tidak Aktif</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
             </ul>
 
@@ -980,23 +987,27 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
                     <div class="collapse <?= in_array($page, ['mobil_konvensional','mobil_hybrid','mobil_listrik','motor_besar']) ? 'show' : '' ?>" id="menuKendaraan">
                         <ul class="sidebar-submenu">
                             <li>
-                                <a href="index.php?page=mobil_konvensional" class="<?= $page === 'mobil_konvensional' ? 'active' : '' ?>" id="nav-konvensional">
-                                    <span class="menu-text">Mobil Konvensional</span>
+                                <a href="index.php?page=mobil_konvensional" class="d-flex align-items-center gap-2 <?= $page === 'mobil_konvensional' ? 'active' : '' ?>" id="nav-konvensional">
+                                    <i class="bi bi-car-front-fill fs-6"></i>
+                                    <span>Mobil Konvensional</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="index.php?page=mobil_hybrid" class="<?= $page === 'mobil_hybrid' ? 'active' : '' ?>" id="nav-hybrid">
-                                    <span class="menu-text">Mobil Hybrid</span>
+                                <a href="index.php?page=mobil_hybrid" class="d-flex align-items-center gap-2 <?= $page === 'mobil_hybrid' ? 'active' : '' ?>" id="nav-hybrid">
+                                    <i class="bi bi-plugin fs-6"></i>
+                                    <span>Mobil Hybrid</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="index.php?page=mobil_listrik" class="<?= $page === 'mobil_listrik' ? 'active' : '' ?>" id="nav-listrik">
-                                    <span class="menu-text">Mobil Listrik</span>
+                                <a href="index.php?page=mobil_listrik" class="d-flex align-items-center gap-2 <?= $page === 'mobil_listrik' ? 'active' : '' ?>" id="nav-listrik">
+                                    <i class="bi bi-battery-charging fs-6"></i>
+                                    <span>Mobil Listrik</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="index.php?page=motor_besar" class="<?= $page === 'motor_besar' ? 'active' : '' ?>" id="nav-motor">
-                                    <span class="menu-text">Motor Besar</span>
+                                <a href="index.php?page=motor_besar" class="d-flex align-items-center gap-2 <?= $page === 'motor_besar' ? 'active' : '' ?>" id="nav-motor">
+                                    <i class="bi bi-scooter fs-6"></i>
+                                    <span>Motor Besar</span>
                                 </a>
                             </li>
                         </ul>
@@ -1514,110 +1525,60 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
                     break;
 
                 // ──────────────────────────────────────────────────
-                //  PERHITUNGAN PAJAK (Kalkulasi Pajak)
+                //  KALKULASI PAJAK (Aktif & Expired)
                 // ──────────────────────────────────────────────────
-                case 'perhitungan_pajak':
-                    $totalPajakShowroom = 0.0;
-                    $totalHargaDasar = 0.0;
-                    $totalUnitPajak = count($koleksi);
-                    
-                    $pajakTertinggi = 0.0;
-                    $kendaraanPajakTertinggi = null;
+                case 'pajak_aktif':
+                case 'pajak_expired':
+                    $isAktif = ($page === 'pajak_aktif');
+                    $filteredKoleksi = [];
+                    $totalBebanFiskalHalaman = 0.0;
                     
                     foreach ($koleksi as $kendaraan) {
-                        $pajakVal = $kendaraan->hitungPajakTahunan();
-                        $totalPajakShowroom += $pajakVal;
-                        $totalHargaDasar += $kendaraan->getHargaDasar();
-                        
-                        if ($pajakVal > $pajakTertinggi) {
-                            $pajakTertinggi = $pajakVal;
-                            $kendaraanPajakTertinggi = $kendaraan;
+                        $status = $showroom->getStatusPajak($kendaraan);
+                        if (($isAktif && $status === 'ACTIVE') || (!$isAktif && $status === 'EXPIRED')) {
+                            $filteredKoleksi[] = $kendaraan;
+                            $bebanFiskal = $kendaraan->hitungPajakTahunan() * $kendaraan->getStok();
+                            $totalBebanFiskalHalaman += $bebanFiskal;
                         }
                     }
                     
-                    $rataRataPajak = $totalUnitPajak > 0 ? ($totalPajakShowroom / $totalUnitPajak) : 0.0;
+                    $titleIcon = $isAktif ? 'fa-circle-check text-success' : 'fa-circle-xmark text-danger';
+                    $titleText = $isAktif ? 'Data Pajak Kendaraan Aktif' : 'Data Pajak Kendaraan Tidak Aktif (Expired)';
+                    $badgeClassStatus = $isAktif ? 'bg-success' : 'bg-danger';
+                    $statusText = $isAktif ? 'ACTIVE' : 'EXPIRED';
             ?>
-            <!-- Stat Cards Section -->
-            <div class="stat-cards fade-in">
-                <!-- Total Kendaraan -->
-                <div class="stat-card blue">
-                    <div class="stat-icon-wrap"><i class="fa-solid fa-car-side"></i></div>
-                    <div class="stat-label">Total Unit Kendaraan</div>
-                    <div class="stat-value"><?= $totalUnitPajak ?> <small style="font-size:.55em;color:var(--text-secondary)">unit</small></div>
-                    <div class="stat-sub">Semua jenis kategori kendaraan</div>
-                </div>
-
-                <!-- Total Proyeksi Pajak -->
-                <div class="stat-card orange">
-                    <div class="stat-icon-wrap"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                    <div class="stat-label">Total Proyeksi Fiskal</div>
-                    <div class="stat-value" style="font-size:1.15rem"><?= rupiah($totalPajakShowroom) ?></div>
-                    <div class="stat-sub">Akumulasi seluruh beban pajak</div>
-                </div>
-
-                <!-- Rata-rata Pajak -->
-                <div class="stat-card green">
-                    <div class="stat-icon-wrap"><i class="fa-solid fa-calculator"></i></div>
-                    <div class="stat-label">Rata-Rata Pajak / Unit</div>
-                    <div class="stat-value" style="font-size:1.15rem"><?= rupiah($rataRataPajak) ?></div>
-                    <div class="stat-sub">Total Pajak dibagi jumlah unit</div>
-                </div>
-
-                <!-- Pajak Tertinggi -->
-                <div class="stat-card purple">
-                    <div class="stat-icon-wrap"><i class="fa-solid fa-arrow-up-wide-short"></i></div>
-                    <div class="stat-label">Beban Pajak Tertinggi</div>
-                    <div class="stat-value" style="font-size:1.1rem">
-                        <?= $kendaraanPajakTertinggi ? rupiah($pajakTertinggi) : 'Rp 0' ?>
-                    </div>
-                    <div class="stat-sub">
-                        <?= $kendaraanPajakTertinggi ? htmlspecialchars($kendaraanPajakTertinggi->getBrand() . ' ' . $kendaraanPajakTertinggi->getModel()) : 'Tidak ada data' ?>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Detail Perhitungan Pajak Table -->
-            <div class="fade-in fade-in-delay">
+            <div class="fade-in">
                 <div class="table-panel">
                     <div class="table-header">
-                        <h2><i class="fa-solid fa-calculator text-primary"></i> Detail Perhitungan Pajak Kendaraan</h2>
-                        <span class="record-count"><?= $totalUnitPajak ?> kendaraan terdaftar</span>
+                        <h2><i class="fa-solid <?= $titleIcon ?>"></i> <?= $titleText ?></h2>
+                        <span class="record-count"><?= count($filteredKoleksi) ?> kendaraan</span>
                     </div>
                     <div class="table-responsive" style="overflow-x: auto; width: 100%;">
-                        <table class="table table-sm table-borderless" id="tabel-perhitungan-pajak">
+                        <table class="table table-sm table-borderless">
                             <thead class="text-nowrap">
                                 <tr>
                                     <th>No</th>
                                     <th>Brand & Model</th>
-                                    <th>Kategori Kendaraan</th>
+                                    <th>Kategori (Subclass)</th>
                                     <th class="text-end">Harga Dasar</th>
-                                    <th>Rumus Fiskal Pajak</th>
-                                    <th class="text-end">Beban Pajak Tahunan</th>
+                                    <th class="text-center">Stok</th>
+                                    <th class="text-end">Pajak/Unit</th>
+                                    <th class="text-end">Total Beban Fiskal</th>
+                                    <th class="text-center">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
-                            <?php 
-                            $rumusPajakMap = [
-                                'Mobil Konvensional' => '(2% × Harga Dasar) + (Kapasitas Mesin × 500)',
-                                'Mobil Hybrid'       => '(1% × Harga Dasar) + (Kapasitas Mesin × 250)',
-                                'Mobil Listrik'      => '0.5% × Harga Dasar',
-                                'Motor Besar'        => '1.5% × Harga Dasar'
-                            ];
-                            
-                            $rumusClassMap = [
-                                'Mobil Konvensional' => 'rumus-konvensional',
-                                'Mobil Hybrid'       => 'rumus-hybrid',
-                                'Mobil Listrik'      => 'rumus-listrik',
-                                'Motor Besar'        => 'rumus-motor'
-                            ];
-
-                            foreach ($koleksi as $i => $kendaraan):
+                            <?php if(empty($filteredKoleksi)): ?>
+                                <tr>
+                                    <td colspan="8" class="text-center py-4 text-muted">Tidak ada data kendaraan dengan status ini.</td>
+                                </tr>
+                            <?php endif; ?>
+                            <?php foreach ($filteredKoleksi as $i => $kendaraan):
                                 $kategori = $showroom->getJenisKategori($kendaraan);
                                 $pajak    = $kendaraan->hitungPajakTahunan();
                                 $harga    = $kendaraan->getHargaDasar();
+                                $bebanFiskal = $pajak * $kendaraan->getStok();
                                 $badge    = $badgeClass[$kategori] ?? 'badge-konvensional';
-                                $rumusTxt = $rumusPajakMap[$kategori] ?? '-';
-                                $rumusClass = $rumusClassMap[$kategori] ?? '';
                             ?>
                                 <tr>
                                     <td class="no-col"><?= $i + 1 ?></td>
@@ -1627,12 +1588,12 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
                                     </td>
                                     <td><span class="badge-kategori <?= $badge ?>"><?= $categoryIcon[$kategori] ?? '' ?> <?= $kategori ?></span></td>
                                     <td class="price-main-table text-end"><?= rupiah($harga) ?></td>
-                                    <td>
-                                        <div class="rumus-table-badge <?= $rumusClass ?>" style="margin: 0;">
-                                            <code><?= htmlspecialchars($rumusTxt) ?></code>
-                                        </div>
+                                    <td class="text-center"><span class="stok-badge <?= $kendaraan->getStok() > 2 ? 'stok-ok' : 'stok-low' ?>"><?= $kendaraan->getStok() ?> unit</span></td>
+                                    <td class="text-end" style="color:#64748b; font-weight:600; font-size:0.875rem"><?= rupiah($pajak) ?></td>
+                                    <td class="pajak-val-table text-end"><?= rupiah($bebanFiskal) ?></td>
+                                    <td class="text-center">
+                                        <span class="badge <?= $badgeClassStatus ?>" style="border-radius: 8px; padding: 6px 10px; font-size: 0.75rem; letter-spacing: 0.5px;"><?= $statusText ?></span>
                                     </td>
-                                    <td class="pajak-val-table text-end"><?= rupiah($pajak) ?></td>
                                 </tr>
                             <?php endforeach; ?>
                             </tbody>
@@ -1642,11 +1603,11 @@ $pageTitle = $pageTitles[$page] ?? 'Dashboard';
                         <div class="row w-100 align-items-center g-2">
                             <div class="col-md-7 footer-info">
                                 <i class="fa-solid fa-info-circle me-1"></i>
-                                Perhitungan memicu fungsi OOP <code>hitungPajakTahunan()</code> secara dinamis (Polymorphism)
+                                Total Beban Fiskal = Pajak Tahunan × Jumlah Stok
                             </div>
                             <div class="col-md-5 text-md-end footer-total">
-                                <div class="label">Total Akumulasi Pajak Showroom</div>
-                                <div class="value"><?= rupiah($totalPajakShowroom) ?></div>
+                                <div class="label">Total Akumulasi Beban Fiskal</div>
+                                <div class="value"><?= rupiah($totalBebanFiskalHalaman) ?></div>
                             </div>
                         </div>
                     </div>

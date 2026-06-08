@@ -462,6 +462,20 @@ class ManajemenShowroom
     }
 
     /**
+     * Menentukan status pajak kendaraan berdasarkan tahun.
+     * Logika simulasi:
+     * - Tahun < 2022: EXPIRED
+     * - Tahun >= 2022: ACTIVE
+     *
+     * @param  Kendaraan $kendaraan
+     * @return string
+     */
+    public function getStatusPajak(Kendaraan $kendaraan): string
+    {
+        return $kendaraan->getTahun() < 2022 ? 'EXPIRED' : 'ACTIVE';
+    }
+
+    /**
      * Mengembalikan data ringkasan fiskal showroom sebagai array.
      * Digunakan oleh view untuk menampilkan kartu ringkasan di bagian atas halaman.
      *
